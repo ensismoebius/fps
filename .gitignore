@@ -1,0 +1,7 @@
+gdextension/godot-cpp/bin/
+gdextension/.sconsign.dblite
+gdextension/src/*.os
+game/bin/*.so
+game/bin/*.dll
+game/bin/*.dylib
+game/.godot/
