@@ -154,12 +154,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_player")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Player"]
+layers = 2
 mesh = SubResource("CapsuleMesh_player")
 
 [node name="CameraPivot" type="Node3D" parent="Player"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Player/CameraPivot"]
+cull_mask = 1048573
 current = true
 ```
 
@@ -170,7 +172,65 @@ as formas e malhas); e cada `[node]` declara um nó da árvore, com `parent`
 indicando onde ele se encaixa (`"."` significa "filho direto da raiz da
 cena").
 
-## Passo 3 — Definir a cena principal
+## Passo 3 — Evitar que a câmera veja o próprio corpo do jogador
+
+Rode o jogo neste ponto (adiantando um pouco o tópico
+[07](07-compilando-e-executando.md)) e você vai notar um problema clássico de
+câmera em primeira pessoa: a tela fica parcialmente tomada por uma forma
+preta. A causa é geométrica, não um bug de física — `CameraPivot` fica a 0.7
+de altura, e a cápsula visual do jogador tem 1.8 de altura e 0.4 de raio
+centrada na origem; nessa posição, a câmera está *dentro* do volume da
+própria cápsula. Ela acaba enxergando o lado de dentro da malha do próprio
+personagem.
+
+A solução padrão no Godot não é mover a câmera para fora do corpo (isso
+mudaria o ponto de vista) — é dizer explicitamente à câmera para não
+desenhar aquele objeto específico, usando **camadas de renderização**
+(*render layers*). Toda `VisualInstance3D` (o que inclui `MeshInstance3D`)
+pertence a uma ou mais camadas numeradas de 1 a 20, e toda `Camera3D` só
+desenha objetos cujas camadas estejam no seu `cull_mask`. Por padrão, tudo
+está na camada 1, e toda câmera enxerga todas as camadas — por isso o
+problema só aparece quando a câmera acaba dentro de um objeto que ela mesma
+deveria evitar ver.
+
+Ajuste dois nós:
+
+- No `MeshInstance3D` do `Player`, mude a camada de `1` (padrão) só para a
+  `2`, marcando a camada 2 e desmarcando a 1 na propriedade **Layers**, no
+  inspetor, dentro de **VisualInstance3D > Layers**.
+- No `Camera3D`, em **Cull Mask**, desmarque a camada 2, deixando todas as
+  outras marcadas.
+
+O resultado salvo:
+
+```ini
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player"]
+layers = 2
+mesh = SubResource("CapsuleMesh_player")
+```
+
+```ini
+[node name="Camera3D" type="Camera3D" parent="Player/CameraPivot"]
+cull_mask = 1048573
+current = true
+```
+
+`layers = 2` é uma máscara de bits: o valor `2` corresponde a "somente a
+camada 2 está marcada" (a camada 1 tem valor 1, a camada 2 tem valor 2, a
+camada 3 tem valor 4, e assim por diante, dobrando a cada camada — o mesmo
+esquema de `physical_keycode` como número, só que aqui cada bit é uma
+camada). `cull_mask = 1048573` é o valor padrão de uma câmera nova
+(`1048575`, todas as 20 camadas) menos `2` — ou seja, "todas as camadas,
+exceto a 2". A colisão física (`CollisionShape3D`) não é afetada por nada
+disso: camadas de renderização e camadas de física são sistemas
+completamente separados no Godot, apesar do nome parecido.
+
+Com essa mudança, a malha do jogador continua existindo normalmente (você a
+veria, por exemplo, em um espelho ou em uma câmera de terceira pessoa que
+não excluísse a camada 2) — só a câmera em primeira pessoa do próprio
+jogador deixa de desenhá-la.
+
+## Passo 4 — Definir a cena principal
 
 Em **Project > Project Settings > Application > Run**, defina `main.tscn`
 como a cena principal — o que o Godot deve abrir ao rodar o projeto. Isso
@@ -193,6 +253,11 @@ necessário implementar o efeito visual do agachar ainda — o objetivo deste
 exercício é só a prática de adicionar uma ação de input nova e uma
 propriedade nova ao `Player`, ponta a ponta.
 
+**Extra.** Reverta temporariamente o Passo 3 (volte `layers` do
+`MeshInstance3D` do jogador para `1`, o padrão, e remova o `cull_mask` do
+`Camera3D`) e rode o jogo de novo, para ver com os próprios olhos o problema
+que a camada de renderização resolve. Depois reaplique a correção.
+
 ## Perguntas para fixação
 
 1. Por que a forma de colisão (`CollisionShape3D`) e a malha visual
@@ -202,3 +267,6 @@ propriedade nova ao `Player`, ponta a ponta.
    cena, mas esquecer de atualizar a string em `player.cpp`, o que acontece
    ao rodar o jogo? O programa trava, mostra um erro no console, ou falha
    silenciosamente?
+3. O Passo 3 resolve o problema mudando a *camada de renderização* da malha,
+   em vez de mover a posição da câmera para fora do corpo do jogador. Por que
+   mover a câmera seria uma solução pior, mesmo que também "funcionasse"?
