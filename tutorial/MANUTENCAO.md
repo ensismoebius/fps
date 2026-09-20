@@ -17,10 +17,13 @@ cobre o arquivo que você acabou de mudar.
 | `gdextension/src/player.h` (novas propriedades, novos métodos, nova herança) | [02](02-primeira-classe-gdextension.md), [03](03-gravidade-e-movimento.md), [04](04-camera-e-mouse.md) | Qualquer passo que declara membros ou assinaturas do `Player` |
 | `gdextension/src/player.cpp` — `_physics_process` | [03-gravidade-e-movimento.md](03-gravidade-e-movimento.md) | Todos os passos do tópico, o algoritmo de movimento é montado ali linha a linha |
 | `gdextension/src/player.cpp` — `_ready`, `_unhandled_input` | [04-camera-e-mouse.md](04-camera-e-mouse.md) | Captura do mouse, busca do `CameraPivot`, rotação da câmera |
-| `game/main.tscn` | [05-montando-a-cena.md](05-montando-a-cena.md) | Árvore de nós, formas de colisão, malhas |
+| `game/main.tscn` — nós `Main`, `Floor`, `DirectionalLight3D`, `Player` | [05-montando-a-cena.md](05-montando-a-cena.md) | Árvore de nós, formas de colisão, malhas |
+| `game/main.tscn` — nó `Props`, `WorldEnvironment`, arquivos em `game/assets/models/` | [05b-populando-cena-com-modelos-3d.md](05b-populando-cena-com-modelos-3d.md) | Lista de `ext_resource`, cada `StaticBody3D`+`CollisionShape3D`, o recurso `Environment` |
 | `game/project.godot` — seção `[input]` | [05-montando-a-cena.md](05-montando-a-cena.md) | Tabela de ações de input e teclas |
 | `game/bin/fps.gdextension` | [07-compilando-e-executando.md](07-compilando-e-executando.md) | Campos `entry_symbol`, `compatibility_minimum`, caminhos de bibliotecas |
 | Comando de build (`scons ...`) ou plataformas suportadas | [07-compilando-e-executando.md](07-compilando-e-executando.md) | Comando exato mostrado no tópico |
+| `gdextension/CMakeLists.txt` | [07b-build-alternativo-com-cmake.md](07b-build-alternativo-com-cmake.md) | Todo o tópico — o arquivo é citado por completo |
+| Novo arquivo-fonte adicionado a `add_library(fps SHARED ...)` no CMake | [07b-build-alternativo-com-cmake.md](07b-build-alternativo-com-cmake.md) | Lista de arquivos-fonte no Passo 1 (lembre-se: `add_library` lista os arquivos à mão, não usa Glob) |
 | Qualquer arquivo novo em `gdextension/src/` | [08-conclusao-proximos-passos.md](08-conclusao-proximos-passos.md) | Árvore de arquivos final |
 
 ## Processo ao mudar o código
@@ -31,10 +34,15 @@ cobre o arquivo que você acabou de mudar.
    uma cópia literal do arquivo real — não apenas uma paráfrase.
 4. Se a mudança altera o *comportamento* explicado (não só a sintaxe), releia
    a explicação em prosa do passo e ajuste-a também.
-5. Recompile (`cd gdextension && scons platform=linux target=template_debug
-   api_version=4.7`) e rode a verificação do [tópico
-   07](07-compilando-e-executando.md) para confirmar que os passos, na ordem
-   escrita, ainda produzem um build funcional.
+5. Recompile com os dois sistemas de build — `cd gdextension && scons
+   platform=linux target=template_debug api_version=4.7` e `cmake --build
+   build` (assumindo que a pasta `build/` já foi configurada, veja o tópico
+   [07b](07b-build-alternativo-com-cmake.md)) — e rode a verificação do
+   [tópico 07](07-compilando-e-executando.md) para confirmar que os passos,
+   na ordem escrita, ainda produzem um build funcional. Se você alterou quais
+   arquivos `.cpp` existem em `gdextension/src/`, lembre-se de que o SCons os
+   pega automaticamente (`Glob`), mas o CMake exige atualizar a lista manual
+   em `add_library(fps SHARED ...)`.
 6. Se você criou um arquivo de código novo que nenhuma linha da tabela cobre,
    adicione uma linha nova aqui apontando para o tópico que passou a
    descrevê-lo — ou crie um tópico novo, se for um conceito novo, e adicione-o
@@ -46,3 +54,17 @@ esse erro deixar de ser possível (por exemplo, uma versão nova do godot-cpp
 que passa a aceitar `Basis * Vector3` diretamente), não apague o tópico — ele
 ainda ensina como ler esse tipo de erro. Em vez disso, adicione uma nota
 indicando a partir de qual versão o comportamento mudou.
+
+## Nota histórica: o nó `Props` já teve um tópico pendente
+
+`game/main.tscn` ganhou em algum momento um nó `Props` com seis objetos 3D
+(caixa, barril, barreira, pilar, escada, luminária) e uma arma
+(`weapon_pistol.glb`), modelados no Blender e exportados para
+`game/assets/models/`, além de um `WorldEnvironment` com luz ambiente — tudo
+isso sem usar C++, então sem tópico correspondente por um tempo. Essa
+lacuna foi fechada pelo tópico
+[05b-populando-cena-com-modelos-3d.md](05b-populando-cena-com-modelos-3d.md).
+Este parágrafo fica como lembrete de que o processo descrito em "Processo ao
+mudar o código", acima, é exatamente o que resolveu essa pendência: ela foi
+registrada aqui assim que detectada, e resolvida com um tópico novo assim
+que houve pedido explícito para atualizar o tutorial.

@@ -10,6 +10,7 @@ contar o submódulo `godot-cpp` e artefatos de build (`.os`, `.so`, `.godot/`)
 fps/
 ├── gdextension/
 │   ├── SConstruct                  ← Tópico 1: script de build (SCons)
+│   ├── CMakeLists.txt               ← Build alternativo com CMake (tópico 07b)
 │   ├── godot-cpp/                  ← submódulo Git com os bindings C++ do Godot
 │   └── src/
 │       ├── register_types.h        ← Tópico 1: declaração das funções de (des)inicialização
@@ -18,10 +19,13 @@ fps/
 │       └── player.cpp              ← Tópicos 2 e 3: _physics_process, _ready, _unhandled_input
 ├── game/
 │   ├── project.godot                ← Tópico 4: seção [input] com as ações WASD/jump
-│   ├── main.tscn                    ← Tópico 4: árvore de nós da cena
+│   ├── main.tscn                    ← Tópico 4 (cena base) + tópico 05b (nó Props, WorldEnvironment)
+│   ├── assets/models/                ← Modelos .glb do tópico 05b (caixa, barril, escada, arma...)
 │   └── bin/
 │       ├── fps.gdextension          ← Tópico 6: aponta o Godot para a biblioteca compilada
 │       └── libfps.linux.template_debug.x86_64.so  ← gerado pelo build, não editado à mão
+├── assets-src/
+│   └── fps_assets.blend             ← Arquivo-fonte do Blender por trás dos modelos do tópico 05b
 └── tutorial/                        ← este material
 ```
 
@@ -54,6 +58,11 @@ Quando você aperta o botão de play no editor (ou roda `godot --headless
 7. Sempre que o mouse se move, o Godot entrega o evento a
    `Player::_unhandled_input`, que gira o personagem e inclina a câmera
    dentro de `CameraPivot` (tópico [04](04-camera-e-mouse.md)).
+8. Em paralelo, o Godot instancia os sete modelos `.glb` dentro do nó
+   `Props` (tópico [05b](05b-populando-cena-com-modelos-3d.md)) e aplica o
+   `WorldEnvironment` — sem essa luz ambiente, várias faces desses modelos
+   apareceriam completamente pretas, exatamente como aconteceu na primeira
+   vez que a cena foi montada.
 
 Nenhuma dessas peças funciona isolada: tire o `.gdextension` e o Godot nunca
 carrega a biblioteca; tire o registro no `ClassDB` e `Player` nunca aparece
@@ -83,6 +92,13 @@ ensinado:
 - **Múltiplas armas.** Use o que foi aprendido sobre classes e herança
   (`GDCLASS`) para criar uma segunda classe, por exemplo `Weapon`, que o
   `Player` referencia e delega o disparo.
+- **Arma segurada.** O modelo `weapon_pistol.glb` (tópico
+  [05b](05b-populando-cena-com-modelos-3d.md)) hoje só existe largado no
+  chão. Anexá-lo como filho de `Camera3D` (para que se mova junto com a
+  visão do jogador) e adicionar uma `Area3D` de coleta que o esconda do chão
+  e o revele preso à câmera são dois exercícios naturais de continuação,
+  combinando cena (tópico 05b) com lógica em C++ (`Player::_ready`,
+  tópico [04](04-camera-e-mouse.md)).
 
 Cada uma dessas extensões deveria, por sua vez, virar um novo arquivo
 numerado neste tutorial (por exemplo `09-sistema-de-tiro.md`) — veja
