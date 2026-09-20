@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="PackedScene" uid="uid://dbcmo8vuy6trb" path="res://assets/models/prop_crate.glb" id="ExtCrate"]
 [ext_resource type="PackedScene" uid="uid://t7af7dra0h6b" path="res://assets/models/prop_barrel.glb" id="ExtBarrel"]
@@ -32,6 +32,37 @@ size = Vector3(2, 1, 0.3)
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_pillar"]
 radius = 0.3
 height = 3.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_stairs_step1"]
+size = Vector3(1.2, 0.2, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_stairs_step2"]
+size = Vector3(0.8, 0.4, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_stairs_step3"]
+size = Vector3(0.4, 0.6, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lightfixture"]
+size = Vector3(0.6, 0.1, 0.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_grip"]
+size = Vector3(0.06, 0.18, 0.09)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_frame"]
+size = Vector3(0.05, 0.06, 0.18)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_slide"]
+size = Vector3(0.044, 0.04, 0.22)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_pistol_barrel"]
+radius = 0.012
+height = 0.06
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_sight"]
+size = Vector3(0.008, 0.012, 0.016)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_triggerguard"]
+size = Vector3(0.04, 0.012, 0.06)
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 0
@@ -115,17 +146,56 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.5, 3)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 shape = SubResource("CylinderShape3D_pillar")
 
-[node name="Stairs01" type="Node3D" parent="Props"]
+[node name="Stairs01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -6)
 
 [node name="Model" parent="Props/Stairs01" instance=ExtResource("ExtStairs")]
 
-[node name="LightFixture01" type="Node3D" parent="Props"]
+[node name="CollisionShape3D_Step1" type="CollisionShape3D" parent="Props/Stairs01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.1, 0)
+shape = SubResource("BoxShape3D_stairs_step1")
+
+[node name="CollisionShape3D_Step2" type="CollisionShape3D" parent="Props/Stairs01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.2, 0)
+shape = SubResource("BoxShape3D_stairs_step2")
+
+[node name="CollisionShape3D_Step3" type="CollisionShape3D" parent="Props/Stairs01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0, 0.3, 0)
+shape = SubResource("BoxShape3D_stairs_step3")
+
+[node name="LightFixture01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3.5, 0)
 
 [node name="Model" parent="Props/LightFixture01" instance=ExtResource("ExtLightFixture")]
 
-[node name="Pistol01" type="Node3D" parent="Props"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Props/LightFixture01"]
+shape = SubResource("BoxShape3D_lightfixture")
+
+[node name="Pistol01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.5, 1.2)
 
 [node name="Model" parent="Props/Pistol01" instance=ExtResource("ExtPistol")]
+
+[node name="CollisionShape3D_Grip" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 0.985585, 0.169182, 0, -0.169182, 0.985585, 0, -0.09, 0.06)
+shape = SubResource("BoxShape3D_pistol_grip")
+
+[node name="CollisionShape3D_Frame" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("BoxShape3D_pistol_frame")
+
+[node name="CollisionShape3D_Slide" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, -0.01)
+shape = SubResource("BoxShape3D_pistol_slide")
+
+[node name="CollisionShape3D_Barrel" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.035, -0.14)
+shape = SubResource("CylinderShape3D_pistol_barrel")
+
+[node name="CollisionShape3D_Sight" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.052, 0.03)
+shape = SubResource("BoxShape3D_pistol_sight")
+
+[node name="CollisionShape3D_TriggerGuard" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03, 0.005)
+shape = SubResource("BoxShape3D_pistol_triggerguard")

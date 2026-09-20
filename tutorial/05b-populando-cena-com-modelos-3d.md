@@ -163,25 +163,192 @@ radius = 0.3
 height = 3.0
 ```
 
-Três dos sete modelos — a escada, a luminária e a arma — foram instanciados
-**sem** `StaticBody3D` nem forma de colisão, de propósito:
+A escada, a luminária e a arma seguem exatamente o mesmo padrão — uma
+`BoxShape3D` ou `CylinderShape3D` por peça, com o tamanho copiado direto das
+dimensões reais daquela peça (o Passo 5 mostra como confirmar esses números
+sem depender de contas de cabeça):
 
 ```ini
-[node name="Stairs01" type="Node3D" parent="Props"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_stairs_step1"]
+size = Vector3(1.2, 0.2, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_stairs_step2"]
+size = Vector3(0.8, 0.4, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_stairs_step3"]
+size = Vector3(0.4, 0.6, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lightfixture"]
+size = Vector3(0.6, 0.1, 0.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_grip"]
+size = Vector3(0.06, 0.18, 0.09)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_frame"]
+size = Vector3(0.05, 0.06, 0.18)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_slide"]
+size = Vector3(0.044, 0.04, 0.22)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_pistol_barrel"]
+radius = 0.012
+height = 0.06
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_sight"]
+size = Vector3(0.008, 0.012, 0.016)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pistol_triggerguard"]
+size = Vector3(0.04, 0.012, 0.06)
+```
+
+A caixa, o barril, a barreira e o pilar são cada um uma única forma
+geométrica simples — por isso uma única `CollisionShape3D` basta. A escada
+e a arma não são: são várias formas coladas, e cada parte que se projeta
+para fora precisa de sua própria `CollisionShape3D`, todas dentro do mesmo
+`StaticBody3D`, ou o jogador atravessaria a parte que não tem colisão.
+
+Para a escada, cada degrau vira uma caixa de colisão do tamanho exato
+daquele degrau:
+
+```ini
+[node name="Stairs01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -6)
 
 [node name="Model" parent="Props/Stairs01" instance=ExtResource("ExtStairs")]
+
+[node name="CollisionShape3D_Step1" type="CollisionShape3D" parent="Props/Stairs01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.1, 0)
+shape = SubResource("BoxShape3D_stairs_step1")
+
+[node name="CollisionShape3D_Step2" type="CollisionShape3D" parent="Props/Stairs01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.2, 0)
+shape = SubResource("BoxShape3D_stairs_step2")
+
+[node name="CollisionShape3D_Step3" type="CollisionShape3D" parent="Props/Stairs01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0, 0.3, 0)
+shape = SubResource("BoxShape3D_stairs_step3")
 ```
 
-A escada precisaria de uma colisão em degraus reais (ou de lógica de
-"subir degrau" no `Player`) para ser atravessável de verdade — um problema
-de física separado, fora do escopo deste tópico. A luminária é só
-decoração de teto, sem motivo para bloquear o jogador. E a arma, por
-enquanto, é só um objeto visual no chão — anexá-la à câmera como arma
-segurada e implementar a lógica de pegar/soltar é uma funcionalidade futura,
-não coberta aqui.
+Repare que cada deslocamento (`0.6, 0.1, 0`; `0.8, 0.2, 0`; `1.0, 0.3, 0`) é
+exatamente a posição de cada degrau na malha visual — não é uma caixa
+grande e aproximada por cima dos três degraus, é uma colisão por degrau,
+subindo junto com a geometria. O jogador ainda não consegue *subir* a
+escada sozinho (isso exigiria lógica própria de "degrau" no `Player`, um
+problema à parte), mas ele já não atravessa nenhum dos três blocos.
 
-## Passo 5 — Um bug real: por que os objetos apareceram pretos
+A luminária de teto é uma única caixa achatada, então recebe uma única
+`CollisionShape3D`, sem deslocamento (o modelo dela foi construído com a
+origem já no centro da própria caixa, ao contrário dos outros — outra
+lembrança de que a convenção do Passo 1 é uma escolha de quem modela, não
+uma regra imposta pelo Godot):
+
+```ini
+[node name="LightFixture01" type="StaticBody3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3.5, 0)
+
+[node name="Model" parent="Props/LightFixture01" instance=ExtResource("ExtLightFixture")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Props/LightFixture01"]
+shape = SubResource("BoxShape3D_lightfixture")
+```
+
+## Passo 5 — A arma: seis formas e uma pegadinha de sinal
+
+A arma (`weapon_pistol.glb`) é o modelo mais complexo do projeto: seis
+partes (cabo, armação, ferrolho, cano, mira, guarda-mato) dentro de um nó
+vazio que serve só de raiz. Dar a ela uma colisão que "reflete sua forma" —
+e não só uma caixa grosseira em volta de tudo — significa uma
+`CollisionShape3D` por parte:
+
+```ini
+[node name="Pistol01" type="StaticBody3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.5, 1.2)
+
+[node name="Model" parent="Props/Pistol01" instance=ExtResource("ExtPistol")]
+
+[node name="CollisionShape3D_Grip" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 0.985585, 0.169182, 0, -0.169182, 0.985585, 0, -0.09, 0.06)
+shape = SubResource("BoxShape3D_pistol_grip")
+
+[node name="CollisionShape3D_Frame" type="CollisionShape3D" parent="Props/Pistol01"]
+shape = SubResource("BoxShape3D_pistol_frame")
+
+[node name="CollisionShape3D_Slide" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, -0.01)
+shape = SubResource("BoxShape3D_pistol_slide")
+
+[node name="CollisionShape3D_Barrel" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.035, -0.14)
+shape = SubResource("CylinderShape3D_pistol_barrel")
+
+[node name="CollisionShape3D_Sight" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.052, 0.03)
+shape = SubResource("BoxShape3D_pistol_sight")
+
+[node name="CollisionShape3D_TriggerGuard" type="CollisionShape3D" parent="Props/Pistol01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03, 0.005)
+shape = SubResource("BoxShape3D_pistol_triggerguard")
+```
+
+A primeira versão desta lista de colisões estava errada, e o erro é
+instrutivo. O Passo 2 já avisou que a altura (Blender Z) vira Y no Godot —
+mas ficou faltando dizer o que acontece com a profundidade (Blender Y). A
+resposta, descoberta só quando esta arma expôs o problema, é: **Blender Y
+vira Godot -Z, não +Z** — o sinal também inverte, não só o rótulo do eixo.
+Nenhum dos seis modelos anteriores (caixa, barril, barreira, pilar, escada,
+luminária) tinha peças deslocadas ao longo da profundidade em relação umas
+às outras — todas ficavam centradas nesse eixo — então nenhuma delas
+conseguiria ter revelado esse detalhe. A arma, com seis partes em posições
+diferentes de profundidade (o cabo para trás, o cano para a frente), foi o
+primeiro modelo com peças suficientes para expor o problema.
+
+O jeito de descobrir isso não foi adivinhar — foi carregar a própria cena
+já exportada dentro do Godot e perguntar a ela onde cada malha realmente
+está, com um script descartável rodado via linha de comando:
+
+```bash
+godot --headless --script /tmp/inspect_pistol.gd
+```
+
+onde o script carrega `main.tscn`, instancia-o, percorre os nós dentro de
+`Props/Pistol01/Model` e imprime a posição acumulada de cada
+`MeshInstance3D`. Isso é mais confiável do que recalcular à mão a partir
+dos parâmetros originais do Blender, porque não depende de ninguém lembrar
+corretamente uma convenção de sinal — pergunta direto para o motor que vai
+rodar o jogo de verdade.
+
+Essa mesma investigação também revelou uma segunda armadilha: pedir ao
+Godot o ângulo de rotação de uma peça já pronta (`Basis.get_euler()`) deu um
+valor visivelmente errado para o cabo da arma, porque a transformação
+combinava rotação **e** escala não uniforme, e `get_euler()` assume uma
+rotação pura. A forma correta de extrair só a rotação foi normalizar as
+colunas da matriz (dividir cada eixo pelo próprio comprimento) antes de ler
+o ângulo — outro lembrete de que ferramentas de introspecção têm premissas,
+e vale checar se elas realmente se aplicam ao que está sendo perguntado.
+
+## Passo 6 — Conferindo a colisão de verdade
+
+Depois de escrever várias formas de colisão à mão, "parece certo" não é
+verificação — é só uma primeira impressão. Duas ferramentas confirmam de
+verdade:
+
+**Visualmente**, o próprio Godot sabe desenhar as formas de colisão por
+cima da cena, sem precisar editar nada, com uma opção de linha de comando:
+
+```bash
+godot --path . --debug-collisions
+```
+
+**Numericamente**, é possível escrever um script Godot descartável que
+carrega a cena, calcula a caixa delimitadora (*AABB*, *axis-aligned bounding
+box*) da malha visual de cada objeto e a compara com a caixa delimitadora
+da colisão correspondente — a mesma técnica usada para descobrir e
+confirmar a correção do Passo 5. Um objeto com colisão fiel ao formato deve
+ter as duas caixas praticamente idênticas; qualquer diferença grande aponta
+uma forma de colisão mal posicionada, mal dimensionada, ou (como
+aconteceu aqui) um eixo com o sinal trocado.
+
+## Passo 7 — Um bug real: por que os objetos apareceram pretos
 
 Depois de posicionar os sete modelos e rodar o jogo pela primeira vez,
 alguns deles apareceram como silhuetas completamente pretas — mesmo
@@ -267,6 +434,19 @@ ambiente constante versus uma segunda luz direcional fraca — e descreva uma
 diferença perceptível entre elas (dica: pense em como cada uma trata
 sombras).
 
+**Extra (verificação).** Rode `godot --path . --debug-collisions` e
+confirme visualmente que as seis formas de colisão da arma (Passo 5) se
+encaixam nas seis partes visuais dela, sem sobrar nem faltar em nenhuma
+ponta. Depois, escreva (ou adapte o do Passo 5) um script
+`--headless --script` que calcule a caixa delimitadora da malha de um dos
+objetos simples (por exemplo `Barrel01`) e a compare com a caixa da
+colisão correspondente — as duas devem sair idênticas.
+
+**Extra (o bug de propósito).** Troque `0, 0.035, -0.14` por
+`0, 0.035, 0.14` no `CollisionShape3D_Barrel` da arma (desfazendo a correção
+do Passo 5) e rode `--debug-collisions` de novo. Descreva onde a colisão do
+cano aparece agora em relação ao cano de verdade. Desfaça a mudança depois.
+
 ## Perguntas para fixação
 
 1. Por que o problema de faces pretas não apareceu em nenhum momento
@@ -277,3 +457,10 @@ sombras).
    precisar de um `transform` com deslocamento `(0, 0.5, 0)` explícito? Por
    que essas duas coisas, que representam o "mesmo objeto" visualmente, são
    tratadas de formas tão diferentes pelo Godot?
+3. Por que nenhum dos seis primeiros modelos (caixa, barril, barreira,
+   pilar, escada, luminária) conseguiria ter revelado, sozinho, que a
+   profundidade do Blender vira `-Z` (e não `+Z`) no Godot? O que
+   especificamente a arma tem que os outros seis não têm?
+4. `Basis.get_euler()` devolveu um ângulo visivelmente errado para o cabo da
+   arma. Isso significa que o método tem um bug? Por que ou por que não —
+   e o que ele exige do chamador para devolver um resultado confiável?
