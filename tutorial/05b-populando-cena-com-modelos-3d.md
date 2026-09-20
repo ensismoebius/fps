@@ -4,7 +4,9 @@
 
 Adicionar objetos de cenário (uma caixa, um barril, uma barreira, um pilar,
 uma escada, uma luminária) e uma arma à cena, modelados fora do Godot em um
-programa de modelagem 3D e trazidos para o jogo prontos. Este não é um
+programa de modelagem 3D e trazidos para o jogo prontos, com colisão fiel
+ao formato de cada um e propriedades físicas (atrito, elasticidade, massa)
+condizentes com o material de cada objeto. Este não é um
 tópico numerado como os outros: nada aqui usa C++ — é modelagem 3D e
 montagem de cena — mas ele documenta uma peça real do projeto
 (`game/main.tscn` ganhou um nó `Props` inteiro) que os tópicos numerados
@@ -410,6 +412,98 @@ uma fonte de luz explicitamente. Nenhum dos dois é um defeito do motor —
 são lacunas de configuração que só aparecem quando a cena cresce o
 suficiente para expô-las.
 
+## Passo 8 — Propriedades físicas: material e massa
+
+Até aqui, cada objeto tinha uma forma de colisão, mas todos se comportavam
+fisicamente do mesmo jeito — o Godot usa valores padrão de atrito e
+elasticidade quando nada é dito. Faz sentido que uma caixa de madeira
+deslize diferente de um barril de metal, então cada corpo físico da cena
+ganhou um recurso `PhysicsMaterial`, escolhido por categoria de material,
+exatamente como os materiais visuais do Blender (`Prop_Wood`,
+`Prop_Concrete`, `Prop_Metal_Red`) já eram compartilhados por categoria:
+
+```ini
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_Concrete"]
+friction = 0.8
+bounce = 0.0
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_Wood"]
+friction = 0.6
+bounce = 0.0
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_Metal"]
+friction = 0.4
+bounce = 0.05
+```
+
+`friction` (0 a 1, geralmente) controla o quanto uma superfície resiste a
+deslizar; `bounce` (0 a 1) controla quanto de velocidade um impacto
+devolve — 0 significa "não quica nada". Concreto recebe atrito alto e
+nenhum quique; metal recebe atrito mais baixo e um pouco de quique (imagine
+o barril tombando e ricocheteando de leve); madeira fica no meio. Cada
+`StaticBody3D` referencia o material da sua categoria:
+
+```ini
+[node name="Barrel01" type="StaticBody3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.5, -3)
+physics_material_override = SubResource("PhysicsMaterial_Metal")
+metadata/mass = 35.0
+metadata/material_kind = "metal"
+```
+
+Repare também nas duas linhas `metadata/...`. `mass` (massa) não é uma
+propriedade que o Godot usa para nada num `StaticBody3D` — corpos estáticos
+são, por definição, imóveis, então a física deles nunca precisa saber
+"quanto pesam". Ainda assim, documentar uma massa plausível é útil: é a
+mesma informação que uma futura funcionalidade (pegar a arma, calcular o
+peso de itens carregados, uma explosão que empurra objetos próximos com
+força proporcional à massa) vai precisar, e é mais fácil registrar esse
+número agora, junto do resto da descrição física do objeto, do que
+redescobrir depois qual valor faz sentido para "um barril de metal".
+
+Adotamos uma convenção simples para essa massa informativa:
+**objetos estruturais do cenário (chão, barreira, pilar, escada) recebem
+massa `0.0`**, sinalizando "isso é parte fixa do nível, nunca vai virar um
+objeto dinâmico" — o mesmo `0` que mecanismos de física como o Bullet e o
+PhysX usam para marcar um corpo como estático/infinito. **Objetos que
+poderiam plausivelmente virar itens dinâmicos no futuro (caixa, barril,
+luminária, arma) recebem uma massa realista**, estimada a partir do que
+aquele objeto seria na vida real (uma pistola real pesa perto de 0.9 kg;
+uma caixa de madeira vazia, uns 18 kg).
+
+Como essas propriedades são gravadas com `set_meta()`/`metadata/...`, e não
+com uma propriedade nomeada de verdade como `friction`, qualquer nó aceita
+metadata — inclusive o `Player`. E é aí que aparece uma limitação real do
+motor: um `CharacterBody3D` (a classe da qual `Player` herda, tópico
+[02](02-primeira-classe-gdextension.md)) **não tem** a propriedade
+`physics_material_override` — só `StaticBody3D`, `RigidBody3D` e
+`AnimatableBody3D` têm. Isso não é uma omissão do projeto, é uma decisão de
+design do Godot: um `CharacterBody3D` é *cinemático* — ele se move porque o
+código dele (`Player::_physics_process`, tópico
+[03](03-gravidade-e-movimento.md)) manda, não porque o motor de física
+simula atrito e colisão automaticos nele. Por isso o `Player` guarda
+`friction`, `bounce`, `mass` e `material_kind` inteiramente como metadata,
+sem nenhum `physics_material_override`:
+
+```ini
+[node name="Player" type="Player" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+metadata/mass = 80.0
+metadata/material_kind = "humano"
+metadata/friction = 1.0
+metadata/bounce = 0.0
+```
+
+A forma de descobrir que `CharacterBody3D` não tem essa propriedade não foi
+ler a documentação de cabo a cabo — foi perguntar diretamente ao motor,
+instanciando um `CharacterBody3D` vazio e listando suas propriedades
+(`Object.get_property_list()`) à procura de qualquer coisa com
+"physics_material" no nome. A primeira tentativa de atribuir a propriedade
+a um nó `Player` dentro de um script de verificação falhou com
+`Invalid access to property or key 'physics_material_override'` — o
+próprio erro é a resposta, mas só depois de ser reproduzido e investigado,
+não assumido de antemão.
+
 ## Exercícios
 
 **Fácil.** Mude `ambient_light_energy` de `0.8` para `0.15` e depois para
@@ -447,6 +541,28 @@ colisão correspondente — as duas devem sair idênticas.
 do Passo 5) e rode `--debug-collisions` de novo. Descreva onde a colisão do
 cano aparece agora em relação ao cano de verdade. Desfaça a mudança depois.
 
+**Fácil (propriedades físicas).** Crie um `PhysicsMaterial_Glass` com
+`friction = 0.2` e `bounce = 0.3` (vidro é liso e quica mais que metal ou
+concreto) e aplique-o à luminária, no lugar de `PhysicsMaterial_Metal`.
+Justifique, em uma frase, se essa escolha faz mais sentido para o
+*case* (invólucro) da luminária ou para uma versão futura em que ela
+tivesse uma cúpula de vidro visível separada.
+
+**Médio (propriedades físicas).** Escreva um script `--headless --script`
+que percorra todos os `StaticBody3D` dentro de `Props`, leia
+`physics_material_override.friction`, `get_meta("mass")` e
+`get_meta("material_kind")` de cada um, e imprima uma tabela. Use-o para
+conferir que nenhum objeto ficou sem essas três informações — a mesma
+verificação que gerou a tabela usada para escrever este passo.
+
+**Difícil (propriedades físicas).** Tente adicionar
+`physics_material_override` diretamente ao nó `Player` no `main.tscn` e
+rode `godot --headless --path . --quit`. Compare o resultado com o que
+aconteceu ao tentar o mesmo a partir de um script GDScript (que gerou o
+erro `Invalid access to property or key`). As duas tentativas falham do
+mesmo jeito? Em qual das duas o Godot avisa mais cedo que a propriedade não
+existe?
+
 ## Perguntas para fixação
 
 1. Por que o problema de faces pretas não apareceu em nenhum momento
@@ -464,3 +580,13 @@ cano aparece agora em relação ao cano de verdade. Desfaça a mudança depois.
 4. `Basis.get_euler()` devolveu um ângulo visivelmente errado para o cabo da
    arma. Isso significa que o método tem um bug? Por que ou por que não —
    e o que ele exige do chamador para devolver um resultado confiável?
+5. Por que faz sentido `mass = 0.0` para o pilar e a barreira, mas `mass =
+   35.0` (não zero) para o barril, se nenhum dos dois hoje se move de
+   verdade dentro do jogo?
+6. O `Player` guarda `friction` e `bounce` como metadata, não como
+   `physics_material_override`. Se um dia `CharacterBody3D` ganhasse essa
+   propriedade em uma versão futura do Godot, o que mudaria no
+   comportamento do personagem — o `Player::_physics_process` (tópico
+   [03](03-gravidade-e-movimento.md)) passaria a usar esses valores
+   automaticamente, ou ainda seria preciso ler `get_meta("friction")` à mão
+   dentro do código C++?

@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="PackedScene" uid="uid://dbcmo8vuy6trb" path="res://assets/models/prop_crate.glb" id="ExtCrate"]
 [ext_resource type="PackedScene" uid="uid://t7af7dra0h6b" path="res://assets/models/prop_barrel.glb" id="ExtBarrel"]
@@ -7,6 +7,18 @@
 [ext_resource type="PackedScene" uid="uid://cdxeu416trnte" path="res://assets/models/prop_stairs.glb" id="ExtStairs"]
 [ext_resource type="PackedScene" uid="uid://dkmbu7k4sxd0i" path="res://assets/models/prop_light_fixture.glb" id="ExtLightFixture"]
 [ext_resource type="PackedScene" uid="uid://cbbtuyj4ypxr2" path="res://assets/models/weapon_pistol.glb" id="ExtPistol"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_Concrete"]
+friction = 0.8
+bounce = 0.0
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_Wood"]
+friction = 0.6
+bounce = 0.0
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_Metal"]
+friction = 0.4
+bounce = 0.05
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -80,6 +92,9 @@ size = Vector3(20, 1, 20)
 environment = SubResource("Environment_main")
 
 [node name="Floor" type="StaticBody3D" parent="."]
+physics_material_override = SubResource("PhysicsMaterial_Concrete")
+metadata/mass = 0.0
+metadata/material_kind = "concreto"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
 shape = SubResource("BoxShape3D_floor")
@@ -93,6 +108,10 @@ shadow_enabled = true
 
 [node name="Player" type="Player" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+metadata/mass = 80.0
+metadata/material_kind = "humano"
+metadata/friction = 1.0
+metadata/bounce = 0.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
 shape = SubResource("CapsuleShape3D_player")
@@ -112,6 +131,9 @@ current = true
 
 [node name="Crate01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.5, -3)
+physics_material_override = SubResource("PhysicsMaterial_Wood")
+metadata/mass = 18.0
+metadata/material_kind = "madeira"
 
 [node name="Model" parent="Props/Crate01" instance=ExtResource("ExtCrate")]
 
@@ -121,6 +143,9 @@ shape = SubResource("BoxShape3D_crate")
 
 [node name="Barrel01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.5, -3)
+physics_material_override = SubResource("PhysicsMaterial_Metal")
+metadata/mass = 35.0
+metadata/material_kind = "metal"
 
 [node name="Model" parent="Props/Barrel01" instance=ExtResource("ExtBarrel")]
 
@@ -130,6 +155,9 @@ shape = SubResource("CylinderShape3D_barrel")
 
 [node name="Barrier01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.5, 2)
+physics_material_override = SubResource("PhysicsMaterial_Concrete")
+metadata/mass = 0.0
+metadata/material_kind = "concreto"
 
 [node name="Model" parent="Props/Barrier01" instance=ExtResource("ExtBarrier")]
 
@@ -139,6 +167,9 @@ shape = SubResource("BoxShape3D_barrier")
 
 [node name="Pillar01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.5, 3)
+physics_material_override = SubResource("PhysicsMaterial_Concrete")
+metadata/mass = 0.0
+metadata/material_kind = "concreto"
 
 [node name="Model" parent="Props/Pillar01" instance=ExtResource("ExtPillar")]
 
@@ -148,6 +179,9 @@ shape = SubResource("CylinderShape3D_pillar")
 
 [node name="Stairs01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -6)
+physics_material_override = SubResource("PhysicsMaterial_Concrete")
+metadata/mass = 0.0
+metadata/material_kind = "concreto"
 
 [node name="Model" parent="Props/Stairs01" instance=ExtResource("ExtStairs")]
 
@@ -165,6 +199,9 @@ shape = SubResource("BoxShape3D_stairs_step3")
 
 [node name="LightFixture01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3.5, 0)
+physics_material_override = SubResource("PhysicsMaterial_Metal")
+metadata/mass = 4.0
+metadata/material_kind = "metal"
 
 [node name="Model" parent="Props/LightFixture01" instance=ExtResource("ExtLightFixture")]
 
@@ -173,6 +210,9 @@ shape = SubResource("BoxShape3D_lightfixture")
 
 [node name="Pistol01" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.5, 1.2)
+physics_material_override = SubResource("PhysicsMaterial_Metal")
+metadata/mass = 0.9
+metadata/material_kind = "metal"
 
 [node name="Model" parent="Props/Pistol01" instance=ExtResource("ExtPistol")]
 

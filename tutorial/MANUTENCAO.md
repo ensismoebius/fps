@@ -18,7 +18,7 @@ cobre o arquivo que você acabou de mudar.
 | `gdextension/src/player.cpp` — `_physics_process` | [03-gravidade-e-movimento.md](03-gravidade-e-movimento.md) | Todos os passos do tópico, o algoritmo de movimento é montado ali linha a linha |
 | `gdextension/src/player.cpp` — `_ready`, `_unhandled_input` | [04-camera-e-mouse.md](04-camera-e-mouse.md) | Captura do mouse, busca do `CameraPivot`, rotação da câmera |
 | `game/main.tscn` — nós `Main`, `Floor`, `DirectionalLight3D`, `Player` | [05-montando-a-cena.md](05-montando-a-cena.md) | Árvore de nós, formas de colisão, malhas |
-| `game/main.tscn` — nó `Props`, `WorldEnvironment`, arquivos em `game/assets/models/` | [05b-populando-cena-com-modelos-3d.md](05b-populando-cena-com-modelos-3d.md) | Lista de `ext_resource`, cada `StaticBody3D`+`CollisionShape3D`, o recurso `Environment` |
+| `game/main.tscn` — nó `Props`, `WorldEnvironment`, arquivos em `game/assets/models/` | [05b-populando-cena-com-modelos-3d.md](05b-populando-cena-com-modelos-3d.md) | Lista de `ext_resource`, cada `StaticBody3D`+`CollisionShape3D`, o recurso `Environment`, os `PhysicsMaterial` e a metadata `mass`/`material_kind`/`friction`/`bounce` de cada corpo (inclusive `Player` e `Floor`) |
 | `game/project.godot` — seção `[input]` | [05-montando-a-cena.md](05-montando-a-cena.md) | Tabela de ações de input e teclas |
 | `game/bin/fps.gdextension` | [07-compilando-e-executando.md](07-compilando-e-executando.md) | Campos `entry_symbol`, `compatibility_minimum`, caminhos de bibliotecas |
 | Comando de build (`scons ...`) ou plataformas suportadas | [07-compilando-e-executando.md](07-compilando-e-executando.md) | Comando exato mostrado no tópico |
