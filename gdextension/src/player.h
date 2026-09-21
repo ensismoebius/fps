@@ -4,6 +4,10 @@
 #include <godot_cpp/classes/character_body3d.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event.hpp>
+#include <godot_cpp/classes/kinematic_collision3d.hpp>
+#include <godot_cpp/classes/physics_material.hpp>
+#include <godot_cpp/classes/rigid_body3d.hpp>
+#include <godot_cpp/classes/static_body3d.hpp>
 
 namespace godot {
 
@@ -15,6 +19,16 @@ private:
 	double jump_velocity = 4.5;
 	double gravity = 9.8;
 	double mouse_sensitivity = 0.003;
+	double push_force = 40.0;
+
+	// Metadata read once in _ready(); see game/main.tscn's metadata/mass on Player.
+	double player_mass = 80.0;
+
+	// Friction/bounce of whatever the player is standing on right now, sampled
+	// from the floor collider's PhysicsMaterial after each move_and_slide().
+	// Used on the *next* physics tick, one frame behind, which is imperceptible.
+	double current_floor_friction = 1.0;
+	double current_floor_bounce = 0.0;
 
 	Node3D *camera_pivot = nullptr;
 
@@ -37,6 +51,9 @@ public:
 
 	void set_mouse_sensitivity(double p_sensitivity);
 	double get_mouse_sensitivity() const;
+
+	void set_push_force(double p_push_force);
+	double get_push_force() const;
 };
 
 } // namespace godot

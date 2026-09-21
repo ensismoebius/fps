@@ -94,11 +94,17 @@ ensinado:
   `Player` referencia e delega o disparo.
 - **Arma segurada.** O modelo `weapon_pistol.glb` (tópico
   [05b](05b-populando-cena-com-modelos-3d.md)) hoje só existe largado no
-  chão. Anexá-lo como filho de `Camera3D` (para que se mova junto com a
-  visão do jogador) e adicionar uma `Area3D` de coleta que o esconda do chão
-  e o revele preso à câmera são dois exercícios naturais de continuação,
-  combinando cena (tópico 05b) com lógica em C++ (`Player::_ready`,
-  tópico [04](04-camera-e-mouse.md)).
+  chão — desde o Passo 9 de 05b, como um `RigidBody3D` que pode ser
+  empurrado, mas ainda sem nenhuma forma de ser pego. Anexá-lo como filho de
+  `Camera3D` (para que se mova junto com a visão do jogador) e adicionar uma
+  `Area3D` de coleta que o esconda do chão e o revele preso à câmera são
+  dois exercícios naturais de continuação, combinando cena (tópico 05b) com
+  lógica em C++ (`Player::_ready`, tópico [04](04-camera-e-mouse.md)). Um
+  detalhe a descobrir na prática: um `RigidBody3D` "pego" precisa deixar de
+  ser simulado como corpo físico independente (`freeze = true`, por
+  exemplo) antes de virar filho de `Camera3D` — do contrário, a física
+  continua tentando movê-lo por conta própria enquanto o `Transform3D` do
+  pai também o arrasta.
 
 Cada uma dessas extensões deveria, por sua vez, virar um novo arquivo
 numerado neste tutorial (por exemplo `09-sistema-de-tiro.md`) — veja

@@ -129,10 +129,10 @@ current = true
 
 [node name="Props" type="Node3D" parent="."]
 
-[node name="Crate01" type="StaticBody3D" parent="Props"]
+[node name="Crate01" type="RigidBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.5, -3)
+mass = 18.0
 physics_material_override = SubResource("PhysicsMaterial_Wood")
-metadata/mass = 18.0
 metadata/material_kind = "madeira"
 
 [node name="Model" parent="Props/Crate01" instance=ExtResource("ExtCrate")]
@@ -141,10 +141,10 @@ metadata/material_kind = "madeira"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_crate")
 
-[node name="Barrel01" type="StaticBody3D" parent="Props"]
+[node name="Barrel01" type="RigidBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.5, -3)
+mass = 35.0
 physics_material_override = SubResource("PhysicsMaterial_Metal")
-metadata/mass = 35.0
 metadata/material_kind = "metal"
 
 [node name="Model" parent="Props/Barrel01" instance=ExtResource("ExtBarrel")]
@@ -208,10 +208,10 @@ metadata/material_kind = "metal"
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Props/LightFixture01"]
 shape = SubResource("BoxShape3D_lightfixture")
 
-[node name="Pistol01" type="StaticBody3D" parent="Props"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.5, 1.2)
+[node name="Pistol01" type="RigidBody3D" parent="Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.6, 1.2)
+mass = 0.9
 physics_material_override = SubResource("PhysicsMaterial_Metal")
-metadata/mass = 0.9
 metadata/material_kind = "metal"
 
 [node name="Model" parent="Props/Pistol01" instance=ExtResource("ExtPistol")]

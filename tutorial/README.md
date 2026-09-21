@@ -36,18 +36,22 @@ usado no código real — copie-os exatamente como aparecem.
 | [03-gravidade-e-movimento.md](03-gravidade-e-movimento.md) | **Tópico 2** — Física, gravidade e movimento com WASD |
 | [04-camera-e-mouse.md](04-camera-e-mouse.md) | **Tópico 3** — Câmera em primeira pessoa e captura do mouse |
 | [05-montando-a-cena.md](05-montando-a-cena.md) | **Tópico 4** — Construindo `main.tscn` e o mapa de teclas |
-| [05b-populando-cena-com-modelos-3d.md](05b-populando-cena-com-modelos-3d.md) | Trazendo modelos `.glb` externos (Blender) para a cena, com colisão e luz ambiente |
+| [05b-populando-cena-com-modelos-3d.md](05b-populando-cena-com-modelos-3d.md) | Trazendo modelos `.glb` externos (Blender) para a cena, com colisão, luz ambiente, propriedades físicas (atrito/quique/massa) e o código em `Player::_physics_process` que faz o jogo realmente usá-las |
 | [06-lendo-erros-do-compilador.md](06-lendo-erros-do-compilador.md) | **Tópico 5** — Como ler e corrigir erros reais do compilador C++ |
 | [07-compilando-e-executando.md](07-compilando-e-executando.md) | **Tópico 6** — O comando de build, o arquivo `.gdextension` e como rodar o jogo |
 | [07b-build-alternativo-com-cmake.md](07b-build-alternativo-com-cmake.md) | Build alternativo com CMake, gerando suporte de autocompletar para o editor |
 | [08-conclusao-proximos-passos.md](08-conclusao-proximos-passos.md) | Fechamento: a árvore de arquivos completa e para onde ir a partir daqui |
 
 Os arquivos `00`, `01`, `05b` e `07b` são preparação, ferramental ou
-conteúdo fora do C++ (modelagem 3D, no caso do `05b`), e não fazem parte da
-numeração dos tópicos principais porque não introduzem uma peça nova de
-código do jogo — apenas o que é necessário para chegar até ele, para
-trabalhar nele mais confortavelmente, ou para povoar a cena com conteúdo
-visual. O arquivo `08` fecha o tutorial da mesma forma.
+conteúdo majoritariamente fora do C++ (modelagem 3D e cena, no caso do
+`05b`), e não fazem parte da numeração dos tópicos principais porque
+começam por outro caminho — o que é necessário para chegar até o código,
+para trabalhar nele mais confortavelmente, ou para povoar a cena com
+conteúdo visual. `05b` é a exceção parcial: seu Passo 9 volta para dentro de
+`Player::_physics_process` para fazer o jogo reagir às propriedades físicas
+declaradas na cena — vale a leitura mesmo para quem só quer acompanhar o
+C++. O arquivo `08` fecha o tutorial da mesma forma que os demais não
+numerados.
 
 ## Mantendo o tutorial atualizado
 
